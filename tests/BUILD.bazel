@@ -1,0 +1,50 @@
+# --------------------------------------------------------------------------
+# Общие зависимости для всех тестов
+# --------------------------------------------------------------------------
+_COMMON_DEPS = [
+    "//src:async_service",
+    "@googletest//:gtest",
+    "@googletest//:gtest_main",
+]
+
+_GMOCK_DEPS = _COMMON_DEPS  # gmock уже встроен в @googletest//:gtest (v1.15.0)
+
+# --------------------------------------------------------------------------
+# 1. Runtime expectation problem demo
+# --------------------------------------------------------------------------
+cc_test(
+    name = "test_runtime_expectations",
+    srcs = ["test_runtime_expectations.cpp"],
+    deps = _GMOCK_DEPS,
+    linkopts = ["-pthread"],
+)
+
+# --------------------------------------------------------------------------
+# 2. Async / multithreading problems demo
+# --------------------------------------------------------------------------
+cc_test(
+    name = "test_async_problems",
+    srcs = ["test_async_problems.cpp"],
+    deps = _GMOCK_DEPS,
+    linkopts = ["-pthread"],
+)
+
+# --------------------------------------------------------------------------
+# 3. Death tests problems demo
+# --------------------------------------------------------------------------
+cc_test(
+    name = "test_death_tests",
+    srcs = ["test_death_tests.cpp"],
+    deps = _GMOCK_DEPS,
+    linkopts = ["-pthread"],
+)
+
+# --------------------------------------------------------------------------
+# 4. GMock API problems demo
+# --------------------------------------------------------------------------
+cc_test(
+    name = "test_gmock_api_problems",
+    srcs = ["test_gmock_api_problems.cpp"],
+    deps = _GMOCK_DEPS,
+    linkopts = ["-pthread"],
+)

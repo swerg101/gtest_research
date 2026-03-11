@@ -1,0 +1,18 @@
+# C++17
+build --cxxopt=-std=c++17
+
+# Покажем warnings — полезно для НИР
+build --cxxopt=-Wall
+build --cxxopt=-Wextra
+
+# Цветной вывод
+build --color=yes
+
+# Verbose test output при failure
+test --test_output=errors
+
+# Кэш для ускорения повторных сборок
+build --disk_cache=~/.cache/bazel-disk
+
+# Sandbox (по умолчанию включен, но явно)
+build --spawn_strategy=sandboxed

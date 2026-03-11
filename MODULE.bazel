@@ -1,0 +1,7 @@
+module(
+    name = "gtest_research",
+    version = "0.1.0",
+)
+
+# GoogleTest через BCR (Bazel Central Registry)
+bazel_dep(name = "googletest", version = "1.15.0")

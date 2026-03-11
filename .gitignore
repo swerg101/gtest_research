@@ -1,0 +1,9 @@
+# Bazel
+bazel-*
+.bazel/
+
+# Disk cache (настроен в .bazelrc)
+~/.cache/bazel-disk
+
+# macOS
+.DS_Store

@@ -1,0 +1,10 @@
+package(default_visibility = ["//visibility:public"])
+
+# Header-only библиотека: модель async-сервиса (код под тестом)
+cc_library(
+    name = "async_service",
+    hdrs = ["async_service.h"],
+    strip_include_prefix = "/src",  # позволяет писать #include "async_service.h"
+    # linkopts для pthread — нужен для std::thread, std::mutex и т.д.
+    linkopts = ["-pthread"],
+)
