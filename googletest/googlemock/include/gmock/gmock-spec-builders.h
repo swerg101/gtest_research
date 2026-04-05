@@ -713,7 +713,7 @@ class GTEST_API_ ExpectationBase {
   friend class ::testing::Expectation;
   friend class UntypedFunctionMockerBase;
 
-//   std::function<bool()> runtime_condition_;
+  std::function<bool()> runtime_condition_;
 
   enum Clause {
     // Don't change the order of the enum members!
@@ -771,9 +771,9 @@ class GTEST_API_ ExpectationBase {
     return retired_;
   }
 
-//   bool EvaluateRuntimeCondition() const {
-//     return !runtime_condition_ || runtime_condition_();
-//   }
+  bool EvaluateRuntimeCondition() const {
+    return !runtime_condition_ || runtime_condition_();
+  }
 
   // Retires this expectation.
   void Retire() GTEST_EXCLUSIVE_LOCK_REQUIRED_(g_gmock_mutex) {
@@ -905,10 +905,10 @@ class TypedExpectation<R(Args...)> : public ExpectationBase {
     }
   }
 
-//   TypedExpectation& When(std::function<bool()> condition) {
-//       runtime_condition_ = std::move(condition);
-//       return *this;
-//   }
+  TypedExpectation& When(std::function<bool()> condition) {
+      runtime_condition_ = std::move(condition);
+      return *this;
+  }
 
   // Implements the .With() clause.
   TypedExpectation& With(const Matcher<const ArgumentTuple&>& m) {
@@ -1136,8 +1136,8 @@ class TypedExpectation<R(Args...)> : public ExpectationBase {
     CheckActionCountIfNotDone();
     return !is_retired()
       && AllPrerequisitesAreSatisfied()
-      && Matches(args);
-    //   && EvaluateRuntimeCondition();
+      && Matches(args)
+      && EvaluateRuntimeCondition();
   }
 
   // Describes the result of matching the arguments against this
