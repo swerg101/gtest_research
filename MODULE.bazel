@@ -5,3 +5,8 @@ module(
 
 # GoogleTest через BCR (Bazel Central Registry)
 bazel_dep(name = "googletest", version = "1.15.0")
+
+local_path_override(
+    module_name = "googletest",
+    path = "./googletest",
+)

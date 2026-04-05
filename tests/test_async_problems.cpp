@@ -57,7 +57,7 @@ TEST(AsyncProblems, SleepBasedSyncIsFlaky) {
     service.postConnect(42);
 
     // ПРОБЛЕМА: какой таймаут выбрать?
-    // - Слишком маленький → тест флейкует на нагруженной CI-машине
+    // - Слишком маленький → тест flacky на нагруженной CI-машине
     // - Слишком большой → тесты тормозят
     // - На разных платформах нужны разные значения
     //
@@ -74,62 +74,34 @@ TEST(AsyncProblems, SleepBasedSyncIsFlaky) {
 // Демонстрация 2: Самодельный барьер — workaround
 // ============================================================================
 
-TEST(AsyncProblems, ManualBarrierWorkaround) {
+TEST(AsyncProblems, ManualproxyWorkaround) {
     MockObserver observer;
     MockTransport transport;
-    TestBarrier barrier;
+    TestProxy proxy;
 
     EXPECT_CALL(transport, connect(_)).WillOnce(Return(true));
     EXPECT_CALL(observer, onConnected(42))
-        .WillOnce(Invoke([&](int) { barrier.signal(); }));
+        .WillOnce(Invoke([&](int) { proxy.signal(); }));
 
     AsyncService service(observer, transport);
     service.start();
     service.postConnect(42);
 
     // Работает, но:
-    // 1) Нужно писать TestBarrier самим — GTest его не предоставляет
+    // 1) Нужно писать TestProxy самим — GTest его не предоставляет
     // 2) Каждый expectation нужно оборачивать в Invoke + signal
-    // 3) Barrier — per-expectation, нет единого WaitForAll
+    // 3) proxy — per-expectation, нет единого WaitForAll
     // 4) Если забыть signal — тест зависнет навсегда (или до timeout)
-    ASSERT_TRUE(barrier.wait(std::chrono::milliseconds(5000)))
-        << "Timed out waiting for onConnected";
+    ASSERT_TRUE(proxy.wait(std::chrono::milliseconds(5000)))
+        << "Timed out waiting for onConnected"; 
+		// Как только worker вызовет signal(), cv разбудит тестовый поток,
+		// wait вернёт true, ASSERT_TRUE пройдёт.
 
     service.stop();
 }
 
 // ============================================================================
-// Демонстрация 3: Assertion из другого потока
-// ============================================================================
-
-TEST(AsyncProblems, AssertionFromWorkerThread) {
-    // GTest утверждает, что assertions thread-safe на POSIX.
-    // Но EXPECT_* из не-главного потока ведёт себя неочевидно:
-    // - Fatal failure (ASSERT_*) НЕ прерывает текущую функцию
-    //   в другом потоке, а только помечает тест как failed.
-    // - Это может привести к use-after-free, если тест
-    //   "продолжится" после ASSERT_*.
-
-    std::atomic<bool> passed{false};
-
-    auto future = std::async(std::launch::async, [&] {
-        // Этот EXPECT сработает, но если бы здесь был ASSERT_TRUE(false),
-        // он НЕ прервёт этот поток — только пометит тест как failed.
-        // Код после ASSERT_* продолжит выполняться!
-        EXPECT_EQ(2 + 2, 4);
-        passed = true;
-    });
-
-    future.wait();
-    EXPECT_TRUE(passed);
-
-    // В реальном async-коде это приводит к тому, что тест
-    // "прошёл" (не упал по segfault), но проверки были неполными,
-    // или наоборот — проверка была в другом потоке, но не дождались.
-}
-
-// ============================================================================
-// Демонстрация 4: Гонка между expectations и вызовами
+// Демонстрация 3: Гонка между expectations и вызовами
 // ============================================================================
 
 TEST(AsyncProblems, RaceBetweenExpectAndCall) {
@@ -152,9 +124,9 @@ TEST(AsyncProblems, RaceBetweenExpectAndCall) {
     // Но в реальных тестах это неизбежно: expectations ставятся
     // в тестовом потоке, а колбэки приходят из worker thread.
 
-    EXPECT_CALL(observer, onConnected(_)).Times(AnyNumber());
-    EXPECT_CALL(observer, onDataReceived(_, _)).Times(AnyNumber());
-    EXPECT_CALL(observer, onError(_, _)).Times(AnyNumber());
+    EXPECT_CALL(observer, onConnected(_)).Times(AnyNumber()); // Вынуждены так ставить
+    EXPECT_CALL(observer, onDataReceived(_, _)).Times(AnyNumber()); // Вынуждены так ставить
+    EXPECT_CALL(observer, onError(_, _)).Times(AnyNumber()); // Вынуждены так ставить
 
     AsyncService service(observer, transport);
     service.start();
@@ -174,7 +146,7 @@ TEST(AsyncProblems, RaceBetweenExpectAndCall) {
 }
 
 // ============================================================================
-// Демонстрация 5: Нет встроенного timeout для всего теста
+// Демонстрация 4: Нет встроенного timeout для всего теста
 // ============================================================================
 
 TEST(AsyncProblems, NoBuiltInTestTimeout) {

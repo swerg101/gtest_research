@@ -321,3 +321,45 @@ TEST(RuntimeExpectationsFailing, ConditionalBranch_WrongAssumption_FAILS) {
     // Если бы мы могли выставить expectation ПОСЛЕ вызова connect,
     // увидев результат false, — выбрали бы нужный путь проверки.
 }
+// Если будет When()
+TEST(RuntimeExpectationsFixed, ConditionalBranch_WithWhen) {
+    MockObserver observer;
+    MockTransport transport;
+
+    // Состояние, которое обновляется в runtime
+    std::atomic<bool> connect_succeeded{false};
+
+    // Транспорт решает вернуть ошибку — как и раньше
+    EXPECT_CALL(transport, connect(1))
+        .WillOnce(Invoke([&](int) {
+            bool result = false;  // или true — неважно, тест корректен в обоих случаях
+            connect_succeeded.store(result);
+            return result;
+        }));
+
+    // Путь A: успешное подключение
+    EXPECT_CALL(observer, onConnected(1))
+        .When([&] { return connect_succeeded.load(); })
+        .Times(::testing::AtMost(1));
+
+    // Путь B: ошибка подключения
+    EXPECT_CALL(observer, onError(1, _))
+        .When([&] { return !connect_succeeded.load(); })
+        .Times(1);
+
+    AsyncService service(observer, transport);
+    service.start();
+    service.postConnect(1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    service.stop();
+
+    // connect вернул false →
+    //   connect_succeeded == false →
+    //   onConnected.When() возвращает false → expectation невидим для матчера →
+    //   onError.When() возвращает true → expectation активен, Times(1) удовлетворён
+    //
+    // Если бы connect вернул true — зеркально:
+    //   onConnected активен, onError невидим
+    //
+    // Тест проходит В ОБОИХ СЛУЧАЯХ.
+}

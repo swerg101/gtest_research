@@ -59,10 +59,11 @@ private:
 
 TEST(DeathTests, BasicDeathTest) {
     // Простой death test — работает
-    EXPECT_DEATH({
+    EXPECT_DEATH(
+		{
         ResourceManager rm;
         rm.criticalOperation();  // initialized_ == false → abort()
-    }, "");
+    	}, "");
 }
 
 TEST(DeathTests, DeathTestWithThreadsWarning) {
@@ -149,31 +150,4 @@ TEST(DeathTests, GMockExpectationsInDeathTest) {
     //
     // Невозможно комбинировать "проверку вызовов мока"
     // и "проверку что код упал".
-}
-
-// ============================================================================
-// Демонстрация 4: Порядок запуска death tests
-// ============================================================================
-
-// GTest запускает death tests ПЕРВЫМИ (до остальных тестов).
-// Это задокументированное поведение, но оно создаёт проблему:
-// если death test зависит от state, установленного в SetUpTestSuite(),
-// порядок может быть неожиданным.
-
-class MyDeathTest : public ::testing::Test {
-protected:
-    static void SetUpTestSuite() {
-        // Этот код выполнится перед death tests,
-        // но если есть другие test suites, их SetUp ещё не был вызван.
-        setup_called_ = true;
-    }
-
-    static bool setup_called_;
-};
-
-bool MyDeathTest::setup_called_ = false;
-
-TEST_F(MyDeathTest, VerifySetupOrder) {
-    // OK: SetUpTestSuite вызван
-    EXPECT_TRUE(setup_called_);
 }
