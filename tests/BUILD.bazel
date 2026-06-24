@@ -2,9 +2,11 @@
 # Тесты разделены по подпапкам:
 #   gmock/        — оригинальные GMock-тесты
 #   trompeloeil/  — аналогичные тесты на Trompeloeil
-#   fakeit/       — (будущее) аналоги на FakeIt
+#   fakeit/       — аналоги на FakeIt
 # --------------------------------------------------------------------------
-# Оставляем старые таргеты для обратной совместимости
+# Примечание: test_runtime_expectations, test_death_tests и
+# test_gmock_api_problems переехали в tests/gmock/ — используйте
+# //tests/gmock:... для запуска этих тестов.
 # --------------------------------------------------------------------------
 _GMOCK_DEPS = [
     "//src:async_service",
@@ -13,29 +15,8 @@ _GMOCK_DEPS = [
 ]
 
 cc_test(
-    name = "test_runtime_expectations",
-    srcs = ["test_runtime_expectations.cpp"],
-    deps = _GMOCK_DEPS,
-    linkopts = ["-pthread"],
-)
-
-cc_test(
     name = "test_async_problems",
     srcs = ["test_async_problems.cpp"],
-    deps = _GMOCK_DEPS,
-    linkopts = ["-pthread"],
-)
-
-cc_test(
-    name = "test_death_tests",
-    srcs = ["test_death_tests.cpp"],
-    deps = _GMOCK_DEPS,
-    linkopts = ["-pthread"],
-)
-
-cc_test(
-    name = "test_gmock_api_problems",
-    srcs = ["test_gmock_api_problems.cpp"],
     deps = _GMOCK_DEPS,
     linkopts = ["-pthread"],
 )

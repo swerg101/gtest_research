@@ -11,4 +11,6 @@ cc_test(
         "@googletest//:gtest_main",
     ],
     linkopts = ["-pthread"],
+    # std::uncaught_exceptions доступен с macOS 10.12
+    copts = ["-mmacosx-version-min=10.12"],
 )

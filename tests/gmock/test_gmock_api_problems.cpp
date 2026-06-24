@@ -133,7 +133,7 @@ TEST(GMockAPI, CannotRetireOneExpectation) {
 TEST(GMockAPI, NoWaitForExpectation) {
     MockObserver observer;
     MockTransport transport;
-    TestBarrier barrier;
+    TestProxy barrier;
 
     EXPECT_CALL(transport, connect(_)).WillOnce(Return(true));
     EXPECT_CALL(observer, onConnected(42))

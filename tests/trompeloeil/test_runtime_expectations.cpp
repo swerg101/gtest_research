@@ -126,10 +126,12 @@ TEST(Trompeloeil, ScopedExpectations_P2) {
 
     // Фаза 2: send (с НОВЫМ connect)
     {
-        // Новый expectation на connect -- с ДРУГИМ
-        // поведением, чем в фазе 1:
+        // Новый expectation на connect — ОТДЕЛЬНЫЙ от фазы 1
+        // (REQUIRE_CALL фазы 1 был уничтожен при выходе из {}).
+        // connect возвращает true → onConnected → потом send.
         REQUIRE_CALL(transport, connect(42))
-            .RETURN(false);   // теперь возвращаем false
+            .RETURN(true);
+        REQUIRE_CALL(observer, onConnected(42));
         REQUIRE_CALL(transport, send(42, "hello"))
             .RETURN(true);
         REQUIRE_CALL(observer,
@@ -137,8 +139,8 @@ TEST(Trompeloeil, ScopedExpectations_P2) {
 
         AsyncService service(observer, transport);
         service.start();
-        // connect(42) теперь вернёт false --
-        // это ДРУГОЙ expectation, не из фазы 1.
+        // connect(42) — это ДРУГОЙ, новый expectation: фаза 1
+        // уже завершилась, её REQUIRE_CALL уничтожен.
         service.postConnect(42);
         std::this_thread::sleep_for(
             std::chrono::milliseconds(50));
@@ -164,8 +166,14 @@ TEST(Trompeloeil, ScopedExpectations_P2) {
 // expectations описывают не ту ветку.
 // ============================================================================
 
+// DISABLED: в отличие от GMock (который фиксирует провалы как ADD_FAILURE
+// и продолжает выполнение), Trompeloeil бросает expectation_violation при
+// нарушении FORBID_CALL. Поскольку нарушение происходит в рабочем потоке
+// (worker thread), исключение не поймано → std::terminate → весь процесс
+// завершается, и последующие тесты не запускаются.
+// Запустите вручную (убрав DISABLED_) для наблюдения поведения.
 TEST(Trompeloeil,
-     ConditionalBranch_Strict_FAILS) {
+     DISABLED_ConditionalBranch_Strict_FAILS) {
     MockObserver observer;
     MockTransport transport;
 
