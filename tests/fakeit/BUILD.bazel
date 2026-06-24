@@ -1,0 +1,14 @@
+# --------------------------------------------------------------------------
+# FakeIt-тесты (аналоги GMock runtime expectations)
+# --------------------------------------------------------------------------
+cc_test(
+    name = "test_runtime_expectations",
+    srcs = ["test_runtime_expectations.cpp"],
+    deps = [
+        "//src:async_service",
+        "//fakeit",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+    linkopts = ["-pthread"],
+)

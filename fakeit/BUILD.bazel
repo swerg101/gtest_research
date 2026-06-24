@@ -1,0 +1,13 @@
+# --------------------------------------------------------------------------
+# FakeIt — header-only C++ mocking framework (single header, GTest adapter)
+# --------------------------------------------------------------------------
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "fakeit",
+    hdrs = ["single_header/gtest/fakeit.hpp"],
+    includes = ["single_header/gtest"],
+    deps = [
+        "@googletest//:gtest",
+    ],
+)
